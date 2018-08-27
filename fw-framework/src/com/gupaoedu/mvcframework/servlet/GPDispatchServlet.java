@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by Administrator on 2018/8/26.
@@ -30,6 +31,8 @@ public class GPDispatchServlet extends HttpServlet {
     private Map<String, Object> ioc = new HashMap<String, Object>();
 
     private Map<String, Method> handlerMapping = new HashMap<>();
+
+    private Map<String, Integer> paramIndexMapping = new HashMap<String, Integer>();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -57,8 +60,14 @@ public class GPDispatchServlet extends HttpServlet {
 
         Method method = this.handlerMapping.get(url);
 
-        req.getParameterMap();
+        Map<String, String[]> params = req.getParameterMap();
+
         System.out.print(method);
+        //用反射调用这个方法
+        String beanName = lowerFirstCase(method.getDeclaringClass().getSimpleName());
+
+        method.invoke(ioc.get("beanName"), req, resp, params.get("name")[0]);
+
     }
 
     @Override
@@ -223,5 +232,29 @@ public class GPDispatchServlet extends HttpServlet {
                 }
             }
         }
+    }
+
+    private class Handler {
+
+        protected Object controller;//保存方法对应的实例
+        protected Method method;   //保存映射的方法
+        protected Pattern pattern; //
+        protected Map<String, Integer> paramIndexMapping; //参数顺序
+
+        /**
+         * 构造一个Handler基本参数
+         *
+         * @param controller
+         * @param method
+         * @param pattern
+         */
+        public Handler(Object controller, Method method, Pattern pattern) {
+            this.controller = controller;
+            this.method = method;
+            this.pattern = pattern;
+            paramIndexMapping = new HashMap<String, Integer>();
+
+        }
+
     }
 }
