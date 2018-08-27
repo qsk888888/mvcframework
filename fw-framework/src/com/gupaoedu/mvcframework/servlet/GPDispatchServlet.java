@@ -1,6 +1,8 @@
 package com.gupaoedu.mvcframework.servlet;
 
+import com.gupaoedu.mvcframework.annotation.GPAutowired;
 import com.gupaoedu.mvcframework.annotation.GPController;
+import com.gupaoedu.mvcframework.annotation.GPRequestMapping;
 import com.gupaoedu.mvcframework.annotation.GPService;
 
 import javax.servlet.ServletConfig;
@@ -12,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
@@ -26,6 +29,8 @@ public class GPDispatchServlet extends HttpServlet {
     //线程安全的问题
     private Map<String, Object> ioc = new HashMap<String, Object>();
 
+    private Map<String, Method> handlerMapping = new HashMap<>();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         this.doGet(req, resp);
@@ -34,11 +39,26 @@ public class GPDispatchServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         //任务调度和派遣
-        doDispatch(req, resp);
+        try {
+            doDispatch(req, resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.getWriter().write("500" + Arrays.toString(e.getStackTrace()));
+        }
     }
 
-    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) {
+    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        String url = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        url = url.replace(contextPath, "").replaceAll("/+", "/");
+        if (!this.handlerMapping.containsKey(url)) {
+            resp.getWriter().write("404 Not Found!!!!!!!");
+        }
 
+        Method method = this.handlerMapping.get(url);
+
+        req.getParameterMap();
+        System.out.print(method);
     }
 
     @Override
@@ -51,6 +71,9 @@ public class GPDispatchServlet extends HttpServlet {
         doInstance();
         //4.依赖注入，把需要需要赋值的字段自动赋值
         doAutowired();
+        //=================spring完成=================
+
+        //=================springMVC==================
         //5.初始化HandlerMapping(把Controller中的url和Method进行一对一的映射)
         initHandlerMapping();
 
@@ -58,6 +81,34 @@ public class GPDispatchServlet extends HttpServlet {
     }
 
     private void initHandlerMapping() {
+        if (ioc.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : ioc.entrySet()) {
+            Class<?> clazz = entry.getValue().getClass();
+            if (!clazz.isAnnotationPresent(GPController.class)) {
+                continue;
+            }
+            String baseUrl = "";
+            if (clazz.isAnnotationPresent(GPRequestMapping.class)) {
+                GPRequestMapping requestMapping = clazz.getAnnotation(GPRequestMapping.class);
+                baseUrl = requestMapping.value();
+            }
+
+            Method[] methods = clazz.getMethods();
+            for (Method method : methods) {
+                if (!method.isAnnotationPresent(GPRequestMapping.class)) {
+                    continue;
+                }
+
+                GPRequestMapping requestMapping = method.getAnnotation(GPRequestMapping.class);
+                String url = requestMapping.value();
+                url = (baseUrl + "/" + url).replaceAll("/+", "/");
+
+                handlerMapping.put(url, method);
+            }
+
+        }
     }
 
     private void doAutowired() {
@@ -65,11 +116,26 @@ public class GPDispatchServlet extends HttpServlet {
             return;
         }
         for (Map.Entry<String, Object> entry : ioc.entrySet()) {
-            //不管是不是private,protected,default,只要加了注解都会自动赋值，有点像强吻
-            Field[] fields = entry.getValue().getClass().getDeclaredFields();
-            /*for(){
 
-            }*/
+            Field[] fields = entry.getValue().getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if (!field.isAnnotationPresent(GPAutowired.class)) {
+                    continue;
+                }
+                GPAutowired autowired = field.getAnnotation(GPAutowired.class);
+                String beanName = autowired.value();
+                if ("".equals(beanName)) {
+                    field.getType().getName();
+                }
+                //不管是不是private,protected,default,只要加了注解都会自动赋值，有点像强吻
+                field.setAccessible(true);
+                try {
+                    field.set(entry.getValue(), ioc.get(beanName));
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
         }
     }
 
