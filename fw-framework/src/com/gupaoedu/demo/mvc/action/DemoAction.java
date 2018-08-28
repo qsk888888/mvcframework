@@ -16,13 +16,14 @@ import java.io.IOException;
 @GPController
 @GPRequestMapping("/demo")
 public class DemoAction {
+
     @GPAutowired
-    private IDemoSerivce demoSerivce;
+    private IDemoSerivce iDemoSerivce;
 
     @GPRequestMapping("/query")
     public void query(HttpServletRequest request, HttpServletResponse response,
                       @GPRequestParam("name") String name) {
-        String result = demoSerivce.get(name);
+        String result = iDemoSerivce.get(name);
         try {
             response.getWriter().write(result);
         } catch (IOException e) {

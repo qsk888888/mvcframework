@@ -62,11 +62,11 @@ public class GPDispatchServlet extends HttpServlet {
 
         Map<String, String[]> params = req.getParameterMap();
 
-        System.out.print(method);
+        System.out.print(method + "\n");
         //用反射调用这个方法
         String beanName = lowerFirstCase(method.getDeclaringClass().getSimpleName());
 
-        method.invoke(ioc.get("beanName"), req, resp, params.get("name")[0]);
+        method.invoke(ioc.get(beanName), req, resp, params.get("name")[0]);
 
     }
 
@@ -86,7 +86,7 @@ public class GPDispatchServlet extends HttpServlet {
         //5.初始化HandlerMapping(把Controller中的url和Method进行一对一的映射)
         initHandlerMapping();
 
-        System.out.print("FW Spring MVC init");
+        System.out.print("哈哈哈，真开心，FW Spring MVC init成功！！！\n");
     }
 
     private void initHandlerMapping() {
@@ -131,11 +131,13 @@ public class GPDispatchServlet extends HttpServlet {
                 if (!field.isAnnotationPresent(GPAutowired.class)) {
                     continue;
                 }
+
                 GPAutowired autowired = field.getAnnotation(GPAutowired.class);
                 String beanName = autowired.value();
                 if ("".equals(beanName)) {
-                    field.getType().getName();
+                    beanName = field.getType().getName();
                 }
+
                 //不管是不是private,protected,default,只要加了注解都会自动赋值，有点像强吻
                 field.setAccessible(true);
                 try {
