@@ -6,7 +6,7 @@
     <display-name>Gupao web application</display-name>
     <servlet>
         <servlet-name>gpmvc</servlet-name>
-        <servlet-class>com.gupaoedu.mvcframework.servlet.GPDispatchServlet</servlet-class>
+        <servlet-class>com.fw.mvcframework.servlet.FWDispatchServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>application.properties</param-value>

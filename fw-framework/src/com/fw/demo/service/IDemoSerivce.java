@@ -1,7 +1,7 @@
-package com.gupaoedu.demo.service;
+package com.fw.demo.service;
 
 /**
- * Created by Administrator on 2018/8/26.
+ * Created by qsk on 2018/8/26.
  */
 public interface IDemoSerivce {
     public String get(String name);

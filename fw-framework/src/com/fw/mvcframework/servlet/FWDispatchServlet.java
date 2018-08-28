@@ -1,9 +1,9 @@
-package com.gupaoedu.mvcframework.servlet;
+package com.fw.mvcframework.servlet;
 
-import com.gupaoedu.mvcframework.annotation.GPAutowired;
-import com.gupaoedu.mvcframework.annotation.GPController;
-import com.gupaoedu.mvcframework.annotation.GPRequestMapping;
-import com.gupaoedu.mvcframework.annotation.GPService;
+import com.fw.mvcframework.annotation.FWAutowired;
+import com.fw.mvcframework.annotation.FWController;
+import com.fw.mvcframework.annotation.FWRequestMapping;
+import com.fw.mvcframework.annotation.FWService;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Administrator on 2018/8/26.
  */
-public class GPDispatchServlet extends HttpServlet {
+public class FWDispatchServlet extends HttpServlet {
 
     private Properties contextConfig = new Properties();
 
@@ -98,22 +98,22 @@ public class GPDispatchServlet extends HttpServlet {
         }
         for (Map.Entry<String, Object> entry : ioc.entrySet()) {
             Class<?> clazz = entry.getValue().getClass();
-            if (!clazz.isAnnotationPresent(GPController.class)) {
+            if (!clazz.isAnnotationPresent(FWController.class)) {
                 continue;
             }
             String baseUrl = "";
-            if (clazz.isAnnotationPresent(GPRequestMapping.class)) {
-                GPRequestMapping requestMapping = clazz.getAnnotation(GPRequestMapping.class);
+            if (clazz.isAnnotationPresent(FWRequestMapping.class)) {
+                FWRequestMapping requestMapping = clazz.getAnnotation(FWRequestMapping.class);
                 baseUrl = requestMapping.value();
             }
 
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
-                if (!method.isAnnotationPresent(GPRequestMapping.class)) {
+                if (!method.isAnnotationPresent(FWRequestMapping.class)) {
                     continue;
                 }
 
-                GPRequestMapping requestMapping = method.getAnnotation(GPRequestMapping.class);
+                FWRequestMapping requestMapping = method.getAnnotation(FWRequestMapping.class);
                 String url = requestMapping.value();
                 url = (baseUrl + "/" + url).replaceAll("/+", "/");
 
@@ -131,11 +131,11 @@ public class GPDispatchServlet extends HttpServlet {
 
             Field[] fields = entry.getValue().getClass().getDeclaredFields();
             for (Field field : fields) {
-                if (!field.isAnnotationPresent(GPAutowired.class)) {
+                if (!field.isAnnotationPresent(FWAutowired.class)) {
                     continue;
                 }
 
-                GPAutowired autowired = field.getAnnotation(GPAutowired.class);
+                FWAutowired autowired = field.getAnnotation(FWAutowired.class);
                 String beanName = autowired.value();
                 if ("".equals(beanName)) {
                     beanName = field.getType().getName();
@@ -162,16 +162,16 @@ public class GPDispatchServlet extends HttpServlet {
             for (String className : classNames) {
                 Class<?> clazz = Class.forName(className);
                 //只有加了注解的类才会实例化
-                if (clazz.isAnnotationPresent(GPController.class)) {
+                if (clazz.isAnnotationPresent(FWController.class)) {
                     Object instance = clazz.newInstance();
                     //spring 中的key有三种形式
                     //1.ioc容器中的每一个Bean都有一个唯一的Id,beanName  beanName默认是采用类名首字母小写
                     String beanName = lowerFirstCase(clazz.getSimpleName());
 
                     ioc.put(beanName, instance);
-                } else if (clazz.isAnnotationPresent(GPService.class)) {
+                } else if (clazz.isAnnotationPresent(FWService.class)) {
                     //2.如果采用自定义beanName,优先采用自定义的beanName
-                    GPService service = clazz.getAnnotation(GPService.class);
+                    FWService service = clazz.getAnnotation(FWService.class);
                     String beanName = service.value();
                     if ("".equals(beanName.trim())) {
                         beanName = lowerFirstCase(clazz.getSimpleName());
