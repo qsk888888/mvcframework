@@ -57,6 +57,9 @@ public class GPDispatchServlet extends HttpServlet {
         if (!this.handlerMapping.containsKey(url)) {
             resp.getWriter().write("404 Not Found!!!!!!!");
         }
+        if ("/favicon.ico".equals(url)) { //还不知怎么处理
+            return;
+        }
 
         Method method = this.handlerMapping.get(url);
 
