@@ -36,7 +36,7 @@ public class GPDispatchServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doGet(req, resp);
+        this.doPost(req, resp);
     }
 
     @Override
