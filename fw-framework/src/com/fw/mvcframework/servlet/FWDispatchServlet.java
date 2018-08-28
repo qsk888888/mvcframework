@@ -27,12 +27,10 @@ public class FWDispatchServlet extends HttpServlet {
     private Properties contextConfig = new Properties();
 
     private List<String> classNames = new ArrayList<>();
-    //线程安全的问题
+
     private Map<String, Object> ioc = new HashMap<String, Object>();
 
     private Map<String, Method> handlerMapping = new HashMap<>();
-
-    private Map<String, Integer> paramIndexMapping = new HashMap<String, Integer>();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
