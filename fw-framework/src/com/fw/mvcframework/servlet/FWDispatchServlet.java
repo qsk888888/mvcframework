@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * https://www.cnblogs.com/ITtangtang/p/3978349.html
  */
 public class FWDispatchServlet extends HttpServlet {
-
+    //加载配置文件，这里加载application.properties 中的key
     private Properties contextConfig = new Properties();
 
     private List<String> classNames = new ArrayList<>();
@@ -76,16 +76,18 @@ public class FWDispatchServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         //1.加载配置文件
         doLoadConfig(config.getInitParameter("contextConfigLocation"));
-        //2.扫描所有相关的类
-        doScanner(contextConfig.getProperty("scanpackage"));
-        //3.实例化所有的相关的class,并且放入IOC容器中（Map）
+        //2.解析配置文件拿到value  com.fw.demo
+        String classPath = contextConfig.getProperty("scanpackage");
+        //3.扫描所有相关的类
+        doScanner(classPath);
+        //4.实例化所有的相关的class,并且放入IOC容器中（Map）
         doInstance();
-        //4.依赖注入，把需要需要赋值的字段自动赋值
+        //5.依赖注入，把需要需要赋值的字段自动赋值
         doAutowired();
         //=================spring完成=================
 
         //=================springMVC==================
-        //5.初始化HandlerMapping(把Controller中的url和Method进行一对一的映射)
+        //6.初始化HandlerMapping(把Controller中的url和Method进行一对一的映射)
         initHandlerMapping();
 
         System.out.print("哈哈哈，真开心，FW Spring MVC init成功！！！\n");
